@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SIS</title>
+    <!-- We'll use a popular icon library for the icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #f4f7f6;
+            --sidebar-bg: #2c3e50;
+            --sidebar-text: #ecf0f1;
+            --sidebar-hover: #34495e;
+            --sidebar-submenu-bg: #34495e;
+            --header-bg: #ffffff;
+            --border-color: #e1e1e1;
+            --button-primary-bg: #007bff;
+            --button-primary-hover: #0056b3;
+            --button-secondary-bg: #6c757d;
+            --button-secondary-hover: #5a6268;
+            --table-header-bg: #007bff;
+            --table-header-text: #ffffff;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll */
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            height: 60px;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1001;
+        }
+        .header .logo img {
+            height: 40px;
+        }
+        .header .header-icons {
+            display: flex;
+            gap: 20px;
+            color: #555;
+        }
+        .header .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .mobile-menu-toggle {
+            display: none; /* Hidden on desktop */
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #333;
+        }
+        .main-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding-top: 20px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease-in-out;
+            z-index: 1002;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .sidebar ul li a:hover, .sidebar ul li.active > a {
+            background-color: var(--sidebar-hover);
+        }
+        .sidebar ul li a i {
+            width: 30px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        /* Submenu styles */
+        .sidebar .submenu {
+            display: none;
+            list-style: none;
+            padding-left: 0;
+            background-color: var(--sidebar-submenu-bg);
+        }
+        .sidebar .has-submenu.open > .submenu {
+            display: block;
+        }
+        .sidebar .submenu li a {
+            padding-left: 50px; /* Indent submenu items */
+        }
+        .sidebar .has-submenu > a {
+            position: relative;
+        }
+        .sidebar .has-submenu > a::after {
+            content: '\f054'; /* FontAwesome right arrow */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 20px;
+            transition: transform 0.3s;
+        }
+        .sidebar .has-submenu.open > a::after {
+            transform: rotate(90deg);
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .content-panel {
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+        .panel-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-header .actions i {
+            margin-left: 15px;
+            cursor: pointer;
+        }
+        .panel-body {
+            padding: 20px;
+            color: #333;
+        }
+        .panel-body.default-view {
+             padding: 50px 20px;
+             text-align: center;
+             color: #777;
+        }
+        
+        /* General Panel Styles */
+        .panel-selectors {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .panel-selectors label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .panel-selectors select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            width: 250px;
+        }
+        
+        /* Table Wrapper for horizontal scrolling on mobile */
+        .table-responsive-wrapper {
+            overflow-x: auto;
+            width: 100%;
+        }
+        
+        /* Custom Table Styles */
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            min-width: 800px; /* Prevent table from squishing too much */
+        }
+        .custom-table th, .custom-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .custom-table thead th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .custom-table tbody tr:nth-child(even) {
+            background-color: #f4f7f6;
+        }
+        .custom-table td:last-child {
+            text-align: right;
+            font-weight: 500;
+        }
+        .custom-table .grade-list-rowspan {
+            border-bottom: 2px solid #ccc;
+        }
+
+        /* Attendance Table Styles */
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            min-width: 600px;
+        }
+        .attendance-table th, .attendance-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+        }
+        .attendance-table thead th {
+            background-color: var(--table-header-bg);
+            color: var(--table-header-text);
+            font-weight: 600;
+        }
+        .attendance-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        /* Panel Details Dropdown */
+        .panel-details-dropdown {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 250px;
+            z-index: 1000;
+        }
+        .panel-details-dropdown .details-header {
+            padding: 10px 15px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .panel-details-dropdown .details-body {
+            padding: 15px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .panel-details-dropdown .detail-item {
+            margin-bottom: 5px;
+        }
+        
+        /* Feedback Form Styles */
+        .feedback-form .question-item {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .feedback-form .question-item:last-child {
+            border-bottom: none;
+        }
+        .feedback-form .question-text {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .feedback-form .options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .feedback-form .options label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .feedback-form .options input {
+            margin-right: 5px;
+        }
+        
+        /* My Info Form Styles */
+        .my-info-form h4 {
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .my-info-form .file-note {
+            font-size: 0.9em;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+        .my-info-form input[type="file"] {
+            margin-bottom: 20px;
+        }
+        .my-info-form .upload-btn {
+            background-color: var(--button-primary-bg);
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .my-info-form .upload-btn:hover {
+             background-color: var(--button-primary-hover);
+        }
+
+        /* Hall Ticket Panel Styles */
+        .hall-ticket-panel .admit-card-section {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        .hall-ticket-panel .admit-card-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .hall-ticket-panel .admit-card-header h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+        .hall-ticket-panel .print-btn {
+            background-color: var(--button-primary-bg);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .hall-ticket-panel .print-btn:hover {
+            background-color: var(--button-primary-hover);
+        }
+        .hall-ticket-panel .admit-card-body {
+            min-height: 200px;
+            padding: 20px;
+        }
+
+        /* Complaints Form Styles */
+        .complaints-form-container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .complaints-form .form-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+        .complaints-form label {
+            font-weight: 500;
+            text-align: right;
+        }
+        .complaints-form input,
+        .complaints-form select,
+        .complaints-form textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        .complaints-form input[readonly] {
+            background-color: #e9ecef;
+        }
+        .complaints-form textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .complaints-form .form-buttons {
+            grid-column: 2;
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .complaints-form .form-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+        .complaints-form .submit-btn {
+            background-color: var(--button-primary-bg);
+        }
+        .complaints-form .submit-btn:hover {
+            background-color: var(--button-primary-hover);
+        }
+        .complaints-form .close-btn {
+            background-color: var(--button-secondary-bg);
+        }
+        .complaints-form .close-btn:hover {
+            background-color: var(--button-secondary-hover);
+        }
+
+        /* Mobile Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1001;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            .header .header-icons, .header .user-menu {
+                display: none; /* Hide desktop icons */
+            }
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .overlay.active {
+                display: block;
+            }
+            .content {
+                padding: 15px;
+            }
+            .panel-selectors {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .panel-selectors select {
+                width: 100%;
+            }
+            .complaints-form .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .complaints-form label {
+                text-align: left;
+            }
+            .complaints-form .form-buttons {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <header class="header">
+        <div class="mobile-menu-toggle" id="mobile-menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <div class="logo">
+            {% load static %}
+            <img src="{% static 'images/logo.png' %}" alt="Logo">
+        </div>
+        <div class="header-icons">
+            <i class="fas fa-file-alt"></i>
+            <i class="fas fa-volume-up"></i>
+            <i class="fas fa-database"></i>
+        </div>
+        <div class="user-menu">
+            <i class="fas fa-user-circle fa-2x"></i>
+            <a href="{% url 'logout' %}" style="color: #d9534f;"><i class="fas fa-power-off fa-lg"></i></a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <nav class="sidebar" id="sidebar">
+            <ul>
+                <li data-tab="Documents"><a href="#"><i class="fas fa-file-invoice"></i> Documents</a></li>
+                <li data-tab="Announcements"><a href="#"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li class="active" data-tab="Notice Board"><a href="#"><i class="fas fa-chalkboard"></i> Notice Board</a></li>
+                <li data-tab="Feedback"><a href="#"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+                <li data-tab="My Info"><a href="#"><i class="fas fa-user"></i> My Info</a></li>
+                <li data-tab="Bank Loan"><a href="#"><i class="fas fa-university"></i> Bank Loan</a></li>
+                <li data-tab="Fee"><a href="#"><i class="fas fa-money-check-alt"></i> Fee</a></li>
+                
+                <li class="has-submenu">
+                    <a href="#"><i class="fas fa-graduation-cap"></i> Academics</a>
+                    <ul class="submenu">
+                        <li data-tab="Attendance"><a href="#">Attendance</a></li>
+                        <li data-tab="Grade List"><a href="#">Grade List</a></li>
+                    </ul>
+                </li>
+
+                <li class="has-submenu">
+                    <a href="#"><i class="fas fa-id-card"></i> Hall Ticket</a>
+                    <ul class="submenu">
+                        <li data-tab="Hall Ticket"><a href="#">Hall Ticket (qr)</a></li>
+                    </ul>
+                </li>
+                
+                <li class="has-submenu">
+                    <a href="#"><i class="fas fa-pencil-alt"></i> Examinations</a>
+                     <ul class="submenu">
+                        <li data-tab="Exam Schedule"><a href="#">Exam Schedule</a></li>
+                    </ul>
+                </li>
+                <li class="has-submenu">
+                    <a href="#"><i class="fas fa-headset"></i> Help Desk</a>
+                    <ul class="submenu">
+                        <li data-tab="Complaints"><a href="#">Complaints</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <div class="content-panel">
+                <div class="panel-header">
+                    <h3 id="panel-title">Notice Board</h3>
+                    <div class="actions">
+                        <i class="fas fa-sync-alt"></i>
+                        <i class="fas fa-print"></i>
+                        <i class="fas fa-bars" id="menu-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="panel-details-dropdown" id="panelDetailsDropdown">
+                    <div class="details-header">
+                        <span>Details</span>
+                    </div>
+                    <div class="details-body">
+                        <div class="detail-item">{{ request.user.username }}</div>
+                        <div class="detail-item">{{ request.user.get_full_name|default:'' }}</div>
+                    </div>
+                </div>
+
+                <!-- Default content view -->
+                <div class="panel-body default-view" id="default-panel-body">
+                    No matching records found
+                </div>
+                <!-- Feedback form view (hidden by default) -->
+                <div class="panel-body feedback-form" id="feedback-panel-body" style="display: none;">
+                    <form>
+                        <div class="question-item">
+                            <div class="question-text">1. Syllabus is need based and suitable to the course</div>
+                            <div class="options">
+                                <label><input type="radio" name="q1" value="5"> Strongly Agree</label>
+                                <label><input type="radio" name="q1" value="4"> Agree</label>
+                                <label><input type="radio" name="q1" value="3"> Neutral</label>
+                                <label><input type="radio" name="q1" value="2"> Disagree</label>
+                                <label><input type="radio" name="q1" value="1"> Strongly Disagree</label>
+                            </div>
+                        </div>
+                        <div class="question-item">
+                            <div class="question-text">2. The curriculum has well defined objectives</div>
+                            <div class="options">
+                                <label><input type="radio" name="q2" value="5"> Strongly Agree</label>
+                                <label><input type="radio" name="q2" value="4"> Agree</label>
+                                <label><input type="radio" name="q2" value="3"> Neutral</label>
+                                <label><input type="radio" name="q2" value="2"> Disagree</label>
+                                <label><input type="radio" name="q2" value="1"> Strongly Disagree</label>
+                            </div>
+                        </div>
+                        <div class="question-item">
+                            <div class="question-text">3. The curriculum has components to address requirements of job</div>
+                            <div class="options">
+                                <label><input type="radio" name="q2" value="5"> Strongly Agree</label>
+                                <label><input type="radio" name="q2" value="4"> Agree</label>
+                                <label><input type="radio" name="q2" value="3"> Neutral</label>
+                                <label><input type="radio" name="q2" value="2"> Disagree</label>
+                                <label><input type="radio" name="q2" value="1"> Strongly Disagree</label>
+                            </div>
+                        </div>
+                        <div class="question-item">
+                            <div class="question-text">4. The curriculum gives exposure to latest developments in the field</div>
+                            <div class="options">
+                                <label><input type="radio" name="q2" value="5"> Strongly Agree</label>
+                                <label><input type="radio" name="q2" value="4"> Agree</label>
+                                <label><input type="radio" name="q2" value="3"> Neutral</label>
+                                <label><input type="radio" name="q2" value="2"> Disagree</label>
+                                <label><input type="radio" name="q2" value="1"> Strongly Disagree</label>
+                            </div>
+                        </div>
+                        <div class="question-item">
+                            <div class="question-text">5. The curriculum contains adequate course content and reference material</div>
+                            <div class="options">
+                                <label><input type="radio" name="q2" value="5"> Strongly Agree</label>
+                                <label><input type="radio" name="q2" value="4"> Agree</label>
+                                <label><input type="radio" name="q2" value="3"> Neutral</label>
+                                <label><input type="radio" name="q2" value="2"> Disagree</label>
+                                <label><input type="radio" name="q2" value="1"> Strongly Disagree</label>
+                            </div>
+                        </div>
+                        <div class="question-item">
+                            <div class="question-text">6. Reference books are available in the library</div>
+                            <div class="options">
+                                <label><input type="radio" name="q2" value="5"> Strongly Agree</label>
+                                <label><input type="radio" name="q2" value="4"> Agree</label>
+                                <label><input type="radio" name="q2" value="3"> Neutral</label>
+                                <label><input type="radio" name="q2" value="2"> Disagree</label>
+                                <label><input type="radio" name="q2" value="1"> Strongly Disagree</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <!-- My Info view (hidden by default) -->
+                <div class="panel-body my-info-form" id="my-info-panel-body" style="display: none;">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <h4>Resume</h4>
+                        <p class="file-note">File Format : .pdf File Size <= 4MB</p>
+                        <input type="file" name="resume" accept=".pdf">
+                        <button type="submit" class="upload-btn">Upload</button>
+                    </form>
+                </div>
+                <!-- Fee Schedule view (hidden by default) -->
+                <div class="panel-body fee-schedule" id="fee-panel-body" style="display: none;">
+                    <div class="table-responsive-wrapper">
+                        <table class="custom-table">
+                           <thead>
+                            <tr>
+                                <th>S#</th>
+                                <th>Academic Year</th>
+                                <th>Class of</th>
+                                <th>Semester</th>
+                                <th>Due Date</th>
+                                <th>Particulars</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td><td>2023-2024</td><td>2027</td><td>I</td><td>30/06/2023</td><td>Admission Fee</td><td>20000.00</td>
+                            </tr>
+                            <tr>
+                                <td>2</td><td>2023-2024</td><td>2027</td><td>I</td><td>17/07/2023</td><td>Caution Deposit</td><td>10000.00</td>
+                            </tr>
+                             <tr>
+                                <td>3</td><td>2023-2024</td><td>2027</td><td>I</td><td>17/07/2023</td><td>Installment - I</td><td>125000.00</td>
+                            </tr>
+                            <tr>
+                                <td>4</td><td>2023-2024</td><td>2027</td><td>II</td><td>23/12/2023</td><td>Installment - II</td><td>125000.00</td>
+                            </tr>
+                           
+                            <tr>
+                                <td>5</td><td>2024-2025</td><td>2027</td><td>III</td><td>21/07/2024</td><td>Installment - III</td><td>125000.00</td>
+                            </tr>
+                            <tr>
+                                <td>6</td><td>2024-2025</td><td>2027</td><td>IV</td><td>22/12/2024</td><td>Installment - IV</td><td>125000.00</td>
+                            </tr>
+                            
+                            <tr>
+                                <td>7</td><td>2025-2026</td><td>2027</td><td>V</td><td>19/07/2025</td><td>Installment - V</td><td>125000.00</td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Academics Attendance view (hidden by default) -->
+                <div class="panel-body academics-attendance-panel" id="academics-attendance-panel-body" style="display: none;">
+                    <div class="panel-selectors">
+                        <div>
+                            <label for="semester">Semester</label>
+                            <select name="semester" id="semester">
+                                <option value="4">Semester - IV</option>
+                            </select>
+                        </div>
+                    </div>
+                    <h4>Attendance Percentage</h4>
+                    <div class="table-responsive-wrapper">
+                        <table class="attendance-table">
+                            <thead>
+                            <tr>
+                                <th>S#</th>
+                                <th>Code</th>
+                                <th>Course</th>
+                                <th>Section</th>
+                                <th>Sessions</th>
+                                <th>Attended</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td><td>CS204</td><td>COMPUTER ORGANIZATION AND ARCHITECTURE</td><td>D</td><td>35</td><td>33</td><td>94.29</td>
+                            </tr>
+                            <tr>
+                                <td>2</td><td>DS203</td><td>DATA SCIENCE</td><td>D</td><td>39</td><td>29</td><td>74.36</td>
+                            </tr>
+                            <tr>
+                                <td>3</td><td>CS206</td><td>DATABASE MANAGEMENT SYSTEMS</td><td>D</td><td>44</td><td>28</td><td>63.64</td>
+                            </tr>
+                            <tr>
+                                <td>4</td><td>HS201</td><td>DYNAMICS OF SOCIAL CHANGE</td><td>D</td><td>31</td><td>23</td><td>74.19</td>
+                            </tr>
+                            <tr>
+                                <td>5</td><td>EC102</td><td>FUNDAMENTALS OF SIGNAL PROCESSING</td><td>D</td><td>41</td><td>17</td><td>41.46</td>
+                            </tr>
+                            <tr>
+                                <td>6</td><td>DS202</td><td>INDUSTRY CODING PRACTICE(PYTHON/R)</td><td>D</td><td>34</td><td>25</td><td>73.53</td>
+                            </tr>
+                             <tr>
+                                <td>7</td><td>CR202</td><td>POWER SKILLS - II</td><td>D</td><td>9</td><td>5</td><td>55.56</td>
+                            </tr>
+                             <tr>
+                                <td>8</td><td>CS205</td><td>WEB-ENABLED TECHNOLOGIES</td><td>D</td><td>49</td><td>35</td><td>71.43</td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+                 <!-- Academics Grade List view (hidden by default) -->
+                <div class="panel-body" id="academics-gradelist-panel-body" style="display: none;">
+                     <div class="table-responsive-wrapper">
+                        <table class="custom-table">
+                           <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Semester</th>
+                                <th>Code</th>
+                                <th>Course</th>
+                                <th>Units</th>
+                                <th>Grade</th>
+                                <th>Cum. Units</th>
+                                <th>CGPA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="6" class="grade-list-rowspan">2023-2024</td>
+                                <td rowspan="6" class="grade-list-rowspan">I</td>
+                                <td>CS101</td><td>Computer Programming</td><td>4</td><td>B</td>
+                                <td rowspan="6" class="grade-list-rowspan">13</td>
+                                <td rowspan="6" class="grade-list-rowspan">6.3</td>
+                            </tr>
+                            <tr><td>MT102</td><td>Engineering Graphics</td><td>3</td><td>B</td></tr>
+                            <tr><td>EG101</td><td>English Language Skills</td><td>3</td><td>B</td></tr>
+                            <tr><td>CH102</td><td>Environmental Sciences</td><td>2</td><td>B</td></tr>
+                            <tr><td>HS101</td><td>Essence of Indian Traditional Knowledge</td><td>0</td><td>S</td></tr>
+                            <tr><td>MA101</td><td>Linear Algebra and Ordinary Differential Equations</td><td>3</td><td>B+</td></tr>
+                            
+                            
+                            <tr>
+                                <td rowspan="7" class="grade-list-rowspan">2023-2024</td>
+                                <td rowspan="7" class="grade-list-rowspan">II</td>
+                                <td>PHY101</td><td>Physics</td><td>5</td><td>B</td>
+                                <td rowspan="7" class="grade-list-rowspan">37</td>
+                                <td rowspan="7" class="grade-list-rowspan">6.7</td>
+                            </tr>
+                            <tr><td>EC101</td><td>Basic Electronics</td><td>4</td><td>B</td></tr>
+                            <tr><td>CH101</td><td>Chemistry</td><td>4</td><td>B</td></tr>
+                            <tr><td>CS102</td><td>Data Structures</td><td>4</td><td>B+</td></tr>
+                            <tr><td>MT101</td><td>Digital Fabrication</td><td>3</td><td>B</td></tr>
+                            <tr><td>MA102</td><td>Higher Calculus</td><td>3</td><td>B</td></tr>
+                            <tr><td>DS101</td><td>Introduction to AI and DS</td><td>3</td><td>B</td></tr>
+
+                            <tr>
+                                <td rowspan="7" class="grade-list-rowspan">2024-2025</td>
+                                <td rowspan="7" class="grade-list-rowspan">III</td>
+                                <td>EG102</td><td>Professional Communication</td><td>3</td><td>A</td>
+                                <td rowspan="7" class="grade-list-rowspan">57</td>
+                                <td rowspan="7" class="grade-list-rowspan">7.04</td>
+                            </tr>
+                            <tr><td>CS203</td><td>DESIGN AND ANALYSIS OF ALGORITHMS</td><td>3</td><td>A+</td></tr>
+                            <tr><td>MA202</td><td>DISCRETE MATHEMATICS</td><td>3</td><td>B+</td></tr>
+                            <tr><td>MG201</td><td>ENGINEERING ECONOMICS AND MANAGEMENT</td><td>3</td><td>B</td></tr>
+                            <tr><td>MA201</td><td>INTEGRAL TRANSFORMS AND PROBABILITY & STATISTICS</td><td>3</td><td>B</td></tr>
+                            <tr><td>EC201</td><td>INTRODUCTION TO IOT</td><td>3</td><td>A+</td></tr>
+                            <tr><td>CS201</td><td>OBJECT ORIENTED PROGRAMMING CONCEPTS</td><td>4</td><td>B</td></tr>
+                            
+                            <tr>
+                                <td rowspan="8" class="grade-list-rowspan">2024-2025</td>
+                                <td rowspan="8" class="grade-list-rowspan">IV</td>
+                                <td>CR001</td><td>POWER SKILLS-I</td><td>1</td><td>A+</td>
+                                <td rowspan="8" class="grade-list-rowspan">74</td>
+                                <td rowspan="8" class="grade-list-rowspan">7.0</td>
+                            </tr>
+                            <tr><td>CS202</td><td>THEORY OF COMPUTATION</td><td>0</td><td>B</td></tr>
+                            <tr><td>CS204</td><td>COMPUTER ORGANIZATION AND ARCHITECTURE</td><td>3</td><td>B</td></tr>
+                            <tr><td>DS203</td><td>DATA SCIENCE</td><td>3</td><td>B+</td></tr>
+                            <tr><td>CS206</td><td>DATABASE MANAGEMENT SYSTEMS</td><td>0</td><td>B+</td></tr>
+                            <tr><td>HS201</td><td>DYNAMICS OF SOCIAL CHANGE</td><td>3</td><td>B+</td></tr>
+                            <tr><td>EC102</td><td>FUNDAMENTALS OF SIGNAL PROCESSING</td><td>0</td><td>A</td></tr>
+                            <tr><td>DS202</td><td>INDUSTRY CODING PRACTICE(PYTHON/R)</td><td>3</td><td>A</td></tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Hall Ticket view (hidden by default) -->
+                <div class="panel-body hall-ticket-panel" id="hall-ticket-panel-body" style="display: none;">
+                    <div class="panel-selectors">
+                        <div>
+                            <label for="hall-ticket-semester">Semester</label>
+                            <select id="hall-ticket-semester">
+                                <option>Select</option>
+                                <option>Semester - IV</option>
+                                <option>Semester - III</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="hall-ticket-exam">Exam</label>
+                            <select id="hall-ticket-exam">
+                                <option></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="admit-card-section">
+                        <div class="admit-card-header">
+                            <h4>Admit Card</h4>
+                            <button class="print-btn"><i class="fas fa-print"></i> Print</button>
+                        </div>
+                        <div class="admit-card-body">
+                            <!-- Admit card content will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Examinations view (hidden by default) -->
+                <div class="panel-body" id="exam-schedule-panel-body" style="display: none;">
+                    <div class="panel-selectors">
+                         <div>
+                            <label for="exam-semester">Semester</label>
+                            <select id="exam-semester"><option>Semester - V</option></select>
+                        </div>
+                        <div>
+                            <label for="exam-type">Exam</label>
+                            <select id="exam-type"><option>Demo</option></select>
+                        </div>
+                    </div>
+                    <h4>Exam Schedule</h4>
+                    <div class="table-responsive-wrapper">
+                        <table class="custom-table">
+                            <thead>
+                            <tr>
+                                <th>S#</th>
+                                <th>Date</th>
+                                <th>Code</th>
+                                <th>Course</th>
+                                <th>Reporting</th>
+                                <th>Start Time</th>
+                                <th>Duration</th>
+                                <th>Marks</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 20px;">No Data .....</td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Help Desk Complaints view (hidden by default) -->
+                <div class="panel-body" id="help-desk-complaints-panel-body" style="display: none;">
+                    <div class="complaints-form-container">
+                        <form class="complaints-form">
+                            <div class="form-grid">
+                                <label for="complaint-id">Complaint ID :</label>
+                                <input type="text" id="complaint-id" name="complaint_id" readonly>
+
+                                <label for="enrolno">Enrolno :</label>
+                                <input type="text" id="enrolno" name="enrolno" value="23STUCHH011079" readonly>
+
+                                <label for="name">Name :</label>
+                                <input type="text" id="name" name="name" value="EELI SRIYOGESH" readonly>
+                                
+                                <label for="room-id">Room ID :</label>
+                                <input type="text" id="room-id" name="room_id">
+
+                                <label for="mobile-no">Mobile No :</label>
+                                <input type="text" id="mobile-no" name="mobile_no" value="9391582668">
+
+                                <label for="complaint-type">Complaint :</label>
+                                <select id="complaint-type" name="complaint_type">
+                                    <option>Select</option>
+                                    <option>Electrical</option>
+                                    <option>Plumbing</option>
+                                    <option>Housekeeping</option>
+                                    <option>Other</option>
+                                </select>
+
+                                <label for="location">Location :</label>
+                                <input type="text" id="location" name="location">
+
+                                <label for="remarks">Remarks :</label>
+                                <textarea id="remarks" name="remarks"></textarea>
+
+                                <label for="available">Available :</label>
+                                <textarea id="available" name="available"></textarea>
+
+                                <div class="form-buttons">
+                                    <button type="submit" class="submit-btn">Submit</button>
+                                    <button type="button" class="close-btn">Close</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuIcon = document.getElementById('menu-icon');
+        const panelDetailsDropdown = document.getElementById('panelDetailsDropdown');
+        const sidebar = document.getElementById('sidebar');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const overlay = document.getElementById('overlay');
+        const sidebarLinks = document.querySelectorAll('.sidebar ul li');
+        const panelTitle = document.getElementById('panel-title');
+        
+        const contentPanels = {
+            'default': document.getElementById('default-panel-body'),
+            'Feedback': document.getElementById('feedback-panel-body'),
+            'My Info': document.getElementById('my-info-panel-body'),
+            'Fee': document.getElementById('fee-panel-body'),
+            'Attendance': document.getElementById('academics-attendance-panel-body'),
+            'Grade List': document.getElementById('academics-gradelist-panel-body'),
+            'Hall Ticket': document.getElementById('hall-ticket-panel-body'),
+            'Exam Schedule': document.getElementById('exam-schedule-panel-body'),
+            'Complaints': document.getElementById('help-desk-complaints-panel-body')
+        };
+
+        // Toggle mobile sidebar
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        mobileMenuToggle.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // Toggle user details dropdown
+        menuIcon.addEventListener('click', function(event) {
+            event.stopPropagation();
+            panelDetailsDropdown.style.display = panelDetailsDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Close dropdown if clicking outside
+        document.addEventListener('click', function(event) {
+            if (!panelDetailsDropdown.contains(event.target) && !menuIcon.contains(event.target)) {
+                panelDetailsDropdown.style.display = 'none';
+            }
+        });
+
+        function hideAllPanels() {
+            for (const key in contentPanels) {
+                if(contentPanels[key]) {
+                    contentPanels[key].style.display = 'none';
+                }
+            }
+        }
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                const isSubmenuLink = this.parentElement.classList.contains('submenu');
+                const hasSubmenu = this.classList.contains('has-submenu');
+
+                if (hasSubmenu) {
+                    event.preventDefault(); // Prevent navigation for main dropdown link
+                    this.classList.toggle('open');
+                    return; // Stop further execution
+                }
+
+                sidebarLinks.forEach(l => l.classList.remove('active'));
+                
+                this.classList.add('active');
+                if (isSubmenuLink) {
+                    this.parentElement.parentElement.classList.add('active', 'open');
+                }
+
+
+                const tabName = this.getAttribute('data-tab');
+                
+                hideAllPanels();
+
+                if (tabName) {
+                    panelTitle.textContent = tabName;
+
+                    switch(tabName) {
+                        case 'Feedback':
+                            contentPanels['Feedback'].style.display = 'block';
+                            panelTitle.textContent = 'Students Feedback on Curriculum';
+                            break;
+                        case 'My Info':
+                            contentPanels['My Info'].style.display = 'block';
+                            break;
+                        case 'Fee':
+                            contentPanels['Fee'].style.display = 'block';
+                            panelTitle.textContent = 'Fee Schedule';
+                            break;
+                        case 'Attendance':
+                            contentPanels['Attendance'].style.display = 'block';
+                            break;
+                        case 'Grade List':
+                            contentPanels['Grade List'].style.display = 'block';
+                            break;
+                        case 'Hall Ticket':
+                            contentPanels['Hall Ticket'].style.display = 'block';
+                            break;
+                        case 'Exam Schedule':
+                            contentPanels['Exam Schedule'].style.display = 'block';
+                            break;
+                        case 'Complaints':
+                            contentPanels['Complaints'].style.display = 'block';
+                            break;
+                        default:
+                            contentPanels['default'].style.display = 'block';
+                            break;
+                    }
+                }
+                // Close sidebar on mobile after clicking a link
+                if (window.innerWidth <= 992) {
+                    toggleSidebar();
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</ht
