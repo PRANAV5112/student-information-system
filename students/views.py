@@ -63,12 +63,13 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-# This view is slightly improved with better error handling and feedback
+# --- THIS VIEW HAS BEEN UPDATED TO FIX YOUR ERROR ---
 @login_required
 def manage_grades_view(request):
     """
     Displays the form to add a new grade and a list of all existing grades.
     Only accessible by staff users.
+    Handles duplicate entries.
     """
     if not request.user.is_staff:
         messages.error(request, "You do not have permission to access this page.")
@@ -77,15 +78,13 @@ def manage_grades_view(request):
     if request.method == 'POST':
         student_id = request.POST.get('student')
         
-        # --- IMPROVED ERROR HANDLING ---
-        # Use get_object_or_404 to prevent a server crash
         try:
             student = Student.objects.get(id=student_id)
         except Student.DoesNotExist:
             messages.error(request, "The selected student does not exist.")
             return redirect('manage_grades')
-        # --- END OF IMPROVEMENT ---
 
+        # Get the course code to check for duplicates
         code = request.POST.get('code')
 
         # --- THIS IS THE NEW CODE THAT FIXES YOUR ERROR ---
@@ -95,9 +94,9 @@ def manage_grades_view(request):
             return redirect('manage_grades')
         # --- END OF NEW CODE ---
 
+        # If no duplicate is found, proceed to create the new grade
         year = request.POST.get('year')
         semester = request.POST.get('semester')
-        code = request.POST.get('code')
         course = request.POST.get('course')
         units = request.POST.get('units')
         grade = request.POST.get('grade')
@@ -115,11 +114,12 @@ def manage_grades_view(request):
             marks=marks,
             cgpa=cgpa
         )
-        # --- ADDED SUCCESS MESSAGE ---
+        
         messages.success(request, f"Grade for {course} added successfully!")
         return redirect('manage_grades')
 
     
+    # This part handles the GET request (displaying the page)
     all_students = Student.objects.all()
     all_grades = Grade.objects.all().order_by('student__user__username', 'year', 'semester')
 
@@ -131,8 +131,6 @@ def manage_grades_view(request):
 
 
 # --- THIS IS THE NEW FUNCTION FOR EDITING GRADES ---
-# It corresponds to the 'edit_grade' URL we created in Step 1
-
 @login_required
 def edit_grade_view(request, grade_id):
     """
@@ -143,7 +141,6 @@ def edit_grade_view(request, grade_id):
         messages.error(request, "You do not have permission to access this page.")
         return redirect('dashboard')
 
-    # Get the specific grade from the database, or show a 404 error
     grade = get_object_or_404(Grade, id=grade_id)
 
     if request.method == 'POST':
@@ -154,7 +151,6 @@ def edit_grade_view(request, grade_id):
             grade.student = Student.objects.get(id=student_id)
         except Student.DoesNotExist:
             messages.error(request, "The selected student does not exist.")
-            # Re-render the edit page with the error
             all_students = Student.objects.all()
             context = { 'grade': grade, 'students': all_students }
             return render(request, 'edit_grade.html', context)
@@ -167,7 +163,7 @@ def edit_grade_view(request, grade_id):
         grade.grade = request.POST.get('grade')
         grade.marks = request.POST.get('marks')
         grade.cgpa = request.POST.get('cgpa')
-        grade.save() # Save the changes to the existing grade
+        grade.save() 
         
         messages.success(request, "Grade updated successfully!")
         return redirect('manage_grades') # Redirect back to the main list
@@ -179,12 +175,8 @@ def edit_grade_view(request, grade_id):
             'grade': grade,
             'students': all_students
         }
-        # We will create this 'edit_grade.html' file in the next step
         return render(request, 'edit_grade.html', context)
 
-
-# --- THIS IS THE NEW FUNCTION FOR DELETING GRADES ---
-# It corresponds to the 'delete_grade' URL we created in Step 1
 
 # --- THIS IS THE NEW FUNCTION FOR DELETING GRADES ---
 @login_required
@@ -201,4 +193,4 @@ def delete_grade_view(request, grade_id):
     grade.delete()
     
     messages.success(request, "Grade deleted successfully.")
-    return redirect('manage_grades')
+    return redirect('manage_grades') # Redirect back to the main list

@@ -679,6 +679,68 @@
                         </table>
                     </div>
                 </div>
+
+                <div class="panel-body" id="academics-gradelist-panel-body" style="display: none;">
+    
+    <div class="table-responsive-wrapper">
+        
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Semester</th>
+                    <th>Code</th>
+                    <th>Course</th>
+                    <th>Units</th>
+                    <th>Grade</th>
+                    <th>Cum. Units</th>
+                    <th>CGPA</th>
+                </tr>
+            </thead>
+            
+<tbody>
+    {% regroup grades by year as year_list %}
+    {% for year in year_list %}
+        {% regroup year.list by semester as semester_list %}
+        {% for semester in semester_list %}
+            
+            {% for grade in semester.list %}
+                <tr class="grade-list-rowspan">
+                    
+                    {% if forloop.first %}
+                        <td rowspan="{{ semester.list|length }}">{{ year.grouper }}</td>
+                        <td rowspan="{{ semester.list|length }}">{{ semester.grouper }}</td>
+                    {% endif %}
+                    
+                    <td>{{ grade.code }}</td>
+                    <td>{{ grade.course }}</td>
+                    <td>{{ grade.units }}</td>
+                    <td>{{ grade.grade }}</td>
+
+                    {% if forloop.last %}
+                        <td>{{ grade.marks|default:'' }}</td>
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+
+                    {% if forloop.first %}
+                        <td rowspan="{{ semester.list|length }}">{{ grade.cgpa|default:'' }}</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        
+        {% endfor %}
+    {% empty %}
+        <tr>
+            <td colspan="8" style="text-align: center; padding: 20px;">
+                No grades have been entered for this student yet.
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+        </table>
+    </div>
+</div>
                 <!-- Academics Attendance view (hidden by default) -->
                 <div class="panel-body academics-attendance-panel" id="academics-attendance-panel-body" style="display: none;">
                     <div class="panel-selectors">
@@ -775,7 +837,7 @@
                     </div>
                     <h4>Exam Schedule</h4>
                     <div class="table-responsive-wrapper">
-                        <table class="custom-table">
+                        <table class="attendance-table">
                             <thead>
                             <tr>
                                 <th>S#</th>
@@ -846,6 +908,8 @@
             </div>
         </main>
     </div>
+
+    
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -967,4 +1031,4 @@
 </script>
 
 </body>
-</ht
+</html>
