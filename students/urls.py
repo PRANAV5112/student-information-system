@@ -15,4 +15,8 @@ urlpatterns = [
     
     # This path is for the logout functionality.
     path('logout/', views.logout_view, name='logout'),
+    path('manage-grades/', views.manage_grades_view, name='manage_grades'),
+    path('edit-grade/<int:grade_id>/', views.edit_grade_view, name='edit_grade'),
+    path('delete-grade/<int:grade_id>/', views.delete_grade_view, name='delete_grade'),
+
 ]

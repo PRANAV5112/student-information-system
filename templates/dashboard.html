@@ -538,14 +538,24 @@
                 </div>
                 
                 <div class="panel-details-dropdown" id="panelDetailsDropdown">
-                    <div class="details-header">
-                        <span>Details</span>
-                    </div>
-                    <div class="details-body">
-                        <div class="detail-item">{{ request.user.username }}</div>
-                        <div class="detail-item">{{ request.user.get_full_name|default:'' }}</div>
-                    </div>
-                </div>
+    <div class="details-header">
+        <span>Details</span>
+    </div>
+    <div class="details-body">
+        <div class="detail-item">{{ request.user.username }}</div>
+        <div class="detail-item">{{ request.user.get_full_name|default:'' }}</div>
+        
+        <!-- --- THIS IS THE NEW BUTTON CODE --- -->
+        {% if request.user.is_staff %}
+        <div class="detail-item admin-link" style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;">
+            <a href="{% url 'manage_grades' %}" style="color: #007bff; font-weight: 600; text-decoration: none;">
+                <i class="fas fa-edit"></i> Manage Grades
+            </a>
+        </div>
+        {% endif %}
+        <!-- --- END OF NEW BUTTON CODE --- -->
+    </div>
+</div>
 
                 <!-- Default content view -->
                 <div class="panel-body default-view" id="default-panel-body">
@@ -722,83 +732,7 @@
                         </table>
                     </div>
                 </div>
-                 <!-- Academics Grade List view (hidden by default) -->
-                <div class="panel-body" id="academics-gradelist-panel-body" style="display: none;">
-                     <div class="table-responsive-wrapper">
-                        <table class="custom-table">
-                           <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Semester</th>
-                                <th>Code</th>
-                                <th>Course</th>
-                                <th>Units</th>
-                                <th>Grade</th>
-                                <th>Cum. Units</th>
-                                <th>CGPA</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td rowspan="6" class="grade-list-rowspan">2023-2024</td>
-                                <td rowspan="6" class="grade-list-rowspan">I</td>
-                                <td>CS101</td><td>Computer Programming</td><td>4</td><td>B</td>
-                                <td rowspan="6" class="grade-list-rowspan">13</td>
-                                <td rowspan="6" class="grade-list-rowspan">6.3</td>
-                            </tr>
-                            <tr><td>MT102</td><td>Engineering Graphics</td><td>3</td><td>B</td></tr>
-                            <tr><td>EG101</td><td>English Language Skills</td><td>3</td><td>B</td></tr>
-                            <tr><td>CH102</td><td>Environmental Sciences</td><td>2</td><td>B</td></tr>
-                            <tr><td>HS101</td><td>Essence of Indian Traditional Knowledge</td><td>0</td><td>S</td></tr>
-                            <tr><td>MA101</td><td>Linear Algebra and Ordinary Differential Equations</td><td>3</td><td>B+</td></tr>
-                            
-                            
-                            <tr>
-                                <td rowspan="7" class="grade-list-rowspan">2023-2024</td>
-                                <td rowspan="7" class="grade-list-rowspan">II</td>
-                                <td>PHY101</td><td>Physics</td><td>5</td><td>B</td>
-                                <td rowspan="7" class="grade-list-rowspan">37</td>
-                                <td rowspan="7" class="grade-list-rowspan">6.7</td>
-                            </tr>
-                            <tr><td>EC101</td><td>Basic Electronics</td><td>4</td><td>B</td></tr>
-                            <tr><td>CH101</td><td>Chemistry</td><td>4</td><td>B</td></tr>
-                            <tr><td>CS102</td><td>Data Structures</td><td>4</td><td>B+</td></tr>
-                            <tr><td>MT101</td><td>Digital Fabrication</td><td>3</td><td>B</td></tr>
-                            <tr><td>MA102</td><td>Higher Calculus</td><td>3</td><td>B</td></tr>
-                            <tr><td>DS101</td><td>Introduction to AI and DS</td><td>3</td><td>B</td></tr>
-
-                            <tr>
-                                <td rowspan="7" class="grade-list-rowspan">2024-2025</td>
-                                <td rowspan="7" class="grade-list-rowspan">III</td>
-                                <td>EG102</td><td>Professional Communication</td><td>3</td><td>A</td>
-                                <td rowspan="7" class="grade-list-rowspan">57</td>
-                                <td rowspan="7" class="grade-list-rowspan">7.04</td>
-                            </tr>
-                            <tr><td>CS203</td><td>DESIGN AND ANALYSIS OF ALGORITHMS</td><td>3</td><td>A+</td></tr>
-                            <tr><td>MA202</td><td>DISCRETE MATHEMATICS</td><td>3</td><td>B+</td></tr>
-                            <tr><td>MG201</td><td>ENGINEERING ECONOMICS AND MANAGEMENT</td><td>3</td><td>B</td></tr>
-                            <tr><td>MA201</td><td>INTEGRAL TRANSFORMS AND PROBABILITY & STATISTICS</td><td>3</td><td>B</td></tr>
-                            <tr><td>EC201</td><td>INTRODUCTION TO IOT</td><td>3</td><td>A+</td></tr>
-                            <tr><td>CS201</td><td>OBJECT ORIENTED PROGRAMMING CONCEPTS</td><td>4</td><td>B</td></tr>
-                            
-                            <tr>
-                                <td rowspan="8" class="grade-list-rowspan">2024-2025</td>
-                                <td rowspan="8" class="grade-list-rowspan">IV</td>
-                                <td>CR001</td><td>POWER SKILLS-I</td><td>1</td><td>A+</td>
-                                <td rowspan="8" class="grade-list-rowspan">74</td>
-                                <td rowspan="8" class="grade-list-rowspan">7.0</td>
-                            </tr>
-                            <tr><td>CS202</td><td>THEORY OF COMPUTATION</td><td>0</td><td>B</td></tr>
-                            <tr><td>CS204</td><td>COMPUTER ORGANIZATION AND ARCHITECTURE</td><td>3</td><td>B</td></tr>
-                            <tr><td>DS203</td><td>DATA SCIENCE</td><td>3</td><td>B+</td></tr>
-                            <tr><td>CS206</td><td>DATABASE MANAGEMENT SYSTEMS</td><td>0</td><td>B+</td></tr>
-                            <tr><td>HS201</td><td>DYNAMICS OF SOCIAL CHANGE</td><td>3</td><td>B+</td></tr>
-                            <tr><td>EC102</td><td>FUNDAMENTALS OF SIGNAL PROCESSING</td><td>0</td><td>A</td></tr>
-                            <tr><td>DS202</td><td>INDUSTRY CODING PRACTICE(PYTHON/R)</td><td>3</td><td>A</td></tr>
-                        </tbody>
-                        </table>
-                    </div>
-                </div>
+                
                 <!-- Hall Ticket view (hidden by default) -->
                 <div class="panel-body hall-ticket-panel" id="hall-ticket-panel-body" style="display: none;">
                     <div class="panel-selectors">
